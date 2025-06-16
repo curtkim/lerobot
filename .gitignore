@@ -68,7 +68,7 @@ MANIFEST
 
 # uv/poetry lock files
 poetry.lock
-uv.lock
+#uv.lock
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -172,3 +172,5 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+visualization_output/
+result

@@ -227,6 +227,9 @@ def record_loop(
 
 @parser.wrap()
 def record(cfg: RecordConfig) -> LeRobotDataset:
+    # TODO for only Evaluation
+    #cfg.policy = PreTrainedConfig.from_pretrained("toraise/act_so101_test")
+
     init_logging()
     logging.info(pformat(asdict(cfg)))
     if cfg.display_data:
