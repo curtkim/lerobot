@@ -1,4 +1,21 @@
 {
+  nixConfig = {
+    # current flake에 적용된다.
+    extra-experimental-features = [ "nix-command" "flakes" ];
+    substituters = [
+      "https://cache.nixos.org/"
+      "https://nix-community.cachix.org"
+      "https://cuda-maintainers.cachix.org"
+      "http://192.168.0.198:5000"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
+      "192.168.0.198:xAxl3IZFQCZKbaEfNm/HljvQvm+Q14HSIHcdeMccy6g="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     pyproject-nix = {
@@ -30,8 +47,15 @@
         inherit system;
         config = {
           allowUnfree = true;
-          cudaSupport = false;
+          cudaSupport = true;
         };
+        # overlays = [
+        #   (final: prev: {
+        #     ffmpeg = prev.ffmpeg.overrideAttrs (oldAttrs: rec {
+        #       withCuda = true; 
+        #     });
+        #   })
+        # ];
       };
 
       workspace = uv2nix.lib.workspace.loadWorkspace {
@@ -47,7 +71,7 @@
       python = pkgs.python311;
       python3Packages = pkgs.python311Packages;
 
-      torchcodec = python3Packages.callPackage ./torchcodec2.nix {};
+      _torchcodec = python3Packages.callPackage ./torchcodec4.nix {};
 
       pyprojectOverrides = pkgs.lib.composeExtensions (uv2nix_hammer_overrides.overrides pkgs) (
         # use uv2nix_hammer_overrides.overrides_debug
@@ -70,10 +94,10 @@
             prev = prev.torchvision;
           };
 
-          # torchcodec = hacks.nixpkgsPrebuilt {
-          #   from = torchcodec;
-          #   prev = prev.torchcodec;
-          # };
+          torchcodec = hacks.nixpkgsPrebuilt {
+            from = _torchcodec;
+            prev = prev.torchcodec;
+          };
 
           opencv-python = hacks.nixpkgsPrebuilt {
             from = python3Packages.opencv-python;
@@ -95,9 +119,9 @@
           });
           
           # Skip autopatchelf completely for torchcodec
-          torchcodec = prev.torchcodec.overrideAttrs (old: {
-            dontAutoPatchelf = true;
-          });
+          # torchcodec = prev.torchcodec.overrideAttrs (old: {
+          #   dontAutoPatchelf = true;
+          # });
 
         }
       );
@@ -135,6 +159,7 @@
 
       packages.${system} = {
         default = pythonSet.mkVirtualEnv "lerobot-env" workspace.deps.default;
+        torchcodec = _torchcodec;
       };
 
       devShells.x86_64-linux = {

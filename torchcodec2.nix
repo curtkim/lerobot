@@ -3,6 +3,7 @@
   buildPythonPackage,
   fetchFromGitHub,
   cmake,
+  ninja,
   pkg-config,
   ffmpeg,
   python,
@@ -35,6 +36,7 @@ buildPythonPackage rec {
 
   nativeBuildInputs = [
     cmake
+    ninja
     pkg-config
     setuptools
     wheel
